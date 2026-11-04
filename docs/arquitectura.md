@@ -48,7 +48,6 @@ flowchart TB
     ar -.-> db
     yaml["YAML aplicado con kubectl"] -.->|"Objetos del namespace y Service público"| ns
 ```
-
 El Service público también pertenece al namespace del equipo; se dibuja junto al navegador para destacar el acceso externo. Terraform declara GKE y Artifact Registry; no administra objetos Kubernetes. El node pool tiene dos nodos `e2-small` spot. La ubicación y el proyecto de Google Cloud se parametrizarán cuando se proporcionen.
 
 ## Acceso y comunicación
@@ -90,4 +89,3 @@ Integrantes y asociaciones proporcionados por el usuario; se conserva la escritu
 
 El equipo es **Grupo 4 — Power Rangers**, según lo proporcionado por el usuario. El identificador técnico propuesto incorpora el número del grupo en los nombres del clúster y namespace; estos recursos aún no existen. El proyecto exige almacenar los carnés reales en la base y mostrarlos en el frontend; su tabla, servicio propietario y mecanismo de consulta se definirán al abordar esa integración. Por ahora solo están documentados, sin persistencia en base de datos ni visualización en una interfaz. No forman parte de los cuerpos CRUD de Producto o Pedido.
 
-La estimación de costos y alerta de presupuesto preceden cualquier despliegue. La Fase 1 no despliega ni publica recursos. Siguen pendientes implementación, pruebas con PostgreSQL, frontend, infraestructura real, evidencias A–G, historial de commits requerido, defensa y destrucción autorizada después de la defensa.

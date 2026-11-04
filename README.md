@@ -193,4 +193,4 @@ Desarrollado por **Grupo 4 — Power Rangers**.
 
 - [Contrato de entidades y API](docs/contrato-api.md).
 - [Arquitectura e integrantes de Grupo 4 — Power Rangers](docs/arquitectura.md).
-- [Pruebas y verificaciones](docs/pruebas.md).
+
