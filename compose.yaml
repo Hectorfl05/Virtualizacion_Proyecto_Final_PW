@@ -1,0 +1,23 @@
+name: panaderia-grupo-4
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: panaderia_admin
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definir POSTGRES_PASSWORD en .env}
+      PRODUCTOS_DB_PASSWORD: ${PRODUCTOS_DB_PASSWORD:?Definir PRODUCTOS_DB_PASSWORD en .env}
+      PEDIDOS_DB_PASSWORD: ${PEDIDOS_DB_PASSWORD:?Definir PEDIDOS_DB_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/01-create-databases.sh:/docker-entrypoint-initdb.d/01-create-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U panaderia_admin -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  postgres_data:
