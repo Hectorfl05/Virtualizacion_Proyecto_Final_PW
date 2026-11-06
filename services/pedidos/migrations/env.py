@@ -1,9 +1,9 @@
 from alembic import context
 
+import app.models  # noqa: F401
 from app.config import get_settings
 from app.database import Base, build_engine
 
-# Importar aquí los modelos cuando se implementen en las fases 3 y 4.
 target_metadata = Base.metadata
 
 
