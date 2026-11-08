@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Diseño propio de Fase 1 que representa la arquitectura objetivo. En Fase 2 se agregaron las bases de código de ambos servicios y la configuración local de PostgreSQL; su ejecución aún no se ha verificado. Los componentes de GKE no están desplegados.
+Diseño propio de Fase 1 que representa la arquitectura objetivo. En Fase 2 se agregaron las bases de código de ambos servicios y la configuración local de PostgreSQL; se verificaron con PostgreSQL 16 nativo y procesos Uvicorn reales (ver [pruebas](pruebas.md)). 
 
 ```mermaid
 flowchart TB

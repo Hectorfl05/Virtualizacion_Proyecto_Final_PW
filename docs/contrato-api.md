@@ -8,7 +8,7 @@ Las solicitudes y respuestas con cuerpo usan `application/json`. Cada servicio e
 
 UUID se representa como cadena. Las fechas son ISO 8601 en UTC con zona explícita, por ejemplo `2026-11-03T15:00:00Z`. El servidor genera identificadores y fechas; `updated_at` cambia tras una actualización válida y `created_at` permanece constante.
 
-Importes: cadenas decimales en JSON, sin notación exponencial, con hasta dos decimales en solicitudes y exactamente dos en respuestas. Se rechazan números JSON para importes, valores con más de dos decimales y valores no positivos; no se redondea silenciosamente. Se usa `Decimal` en Python y `NUMERIC` en PostgreSQL, sin conversión a `float`. La moneda no ha sido definida; la interfaz no debe asumir un símbolo monetario.
+Importes: admiten tanto números JSON (`float`, `int`, por ejemplo `12.50` o `12`) como cadenas decimales (`"12.50"`), con hasta dos decimales en solicitudes y exactamente dos en respuestas (`"12.50"`). Se rechazan valores con más de dos decimales, valores no positivos o no numéricos; no se redondea silenciosamente. Se normaliza a `Decimal` en Python y se almacena en `NUMERIC` en PostgreSQL, garantizando precisión financiera exacta sin almacenar jamás como `float` en base de datos. La moneda no ha sido definida; la interfaz no debe asumir un símbolo monetario.
 
 Los cuerpos de escritura deben ser objetos JSON. Se rechazan campos desconocidos y campos gestionados por el servidor (`422`). Tipos estrictos: no aceptar cadenas ni booleanos como cantidad, ni cadenas como booleanos. `PATCH` requiere al menos un campo permitido; un objeto vacío devuelve `422`. Un campo omitido conserva su valor. Solo `descripcion` admite `null`; enviarlo elimina la descripción. No se admiten `null` en otros campos.
 
