@@ -181,6 +181,14 @@ python3 "$ROOT_DIR/tests/integration/test_e2e_flow.py"
 
 echo ""
 echo "================================================================="
+echo "  Poblando Base de Datos con Catálogo Inicial y Carnés (Criterio A4)"
+echo "================================================================="
+PRODUCTOS_URL="http://localhost:$PRODUCTOS_PORT" \
+PEDIDOS_URL="http://localhost:$PEDIDOS_PORT" \
+python3 "$ROOT_DIR/scripts/seed_database.py"
+
+echo ""
+echo "================================================================="
 echo "  RESUMEN DEL ESTADO DE LOS RECURSOS EN KUBERNETES"
 echo "================================================================="
 kubectl get pods,services,pvc -n "$NAMESPACE"
