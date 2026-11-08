@@ -1,0 +1,89 @@
+# Job de migración para Productos (Alembic upgrade head)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: productos-migration-job
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: productos-migration
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: productos-migration
+        app.kubernetes.io/part-of: panaderia-grupo-4
+        team: power-rangers
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/productos:1.0.0
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: panaderia-secrets
+                  key: PRODUCTOS_DATABASE_URL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+# Job de migración para Pedidos (Alembic upgrade head)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pedidos-migration-job
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: pedidos-migration
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pedidos-migration
+        app.kubernetes.io/part-of: panaderia-grupo-4
+        team: power-rangers
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/pedidos:1.0.0
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: panaderia-secrets
+                  key: PEDIDOS_DATABASE_URL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi

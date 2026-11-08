@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: panaderia
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+    environment: production

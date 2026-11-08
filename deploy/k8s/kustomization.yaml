@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: panaderia-grupo-4
+
+resources:
+  - 00-namespace.yaml
+  - 01-configmap.yaml
+  - 03-postgres-pvc.yaml
+  - 04-postgres.yaml
+  - 06-productos.yaml
+  - 07-pedidos.yaml
+
+# Nota: 05-migration-jobs.yaml se aplica como paso intermedio explícito
+# tras validar que postgres esté listo, y 02-secret.example.yaml debe
+# generarse como 02-secret.yaml localmente antes del despliegue.

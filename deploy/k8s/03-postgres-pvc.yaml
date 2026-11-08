@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
