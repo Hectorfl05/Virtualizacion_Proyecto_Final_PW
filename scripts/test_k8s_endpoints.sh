@@ -52,7 +52,10 @@ echo "[Paso 2/6] Preparando Namespace y Secret de credenciales..."
 kubectl apply -f "$K8S_DIR/00-namespace.yaml"
 kubectl apply -f "$K8S_DIR/01-configmap.yaml"
 
-if ! kubectl get secret panaderia-secrets -n "$NAMESPACE" > /dev/null 2>&1; then
+if [ -f "$K8S_DIR/02-secret.yaml" ]; then
+    echo "  -> Aplicando Secret desde $K8S_DIR/02-secret.yaml..."
+    kubectl apply -f "$K8S_DIR/02-secret.yaml"
+elif ! kubectl get secret panaderia-secrets -n "$NAMESPACE" > /dev/null 2>&1; then
     echo "  -> Creando Secret 'panaderia-secrets' con credenciales seguras de prueba..."
     ADMIN_PASS="SecretAdmin_$(openssl rand -hex 6)"
     PROD_PASS="SecretProd_$(openssl rand -hex 6)"
