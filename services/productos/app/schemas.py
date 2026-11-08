@@ -31,19 +31,28 @@ def validate_descripcion_str(v: Any) -> str | None:
 
 
 def validate_precio_str(v: Any) -> str:
-    if not isinstance(v, str):
-        raise ValueError("El precio debe ser enviado como una cadena decimal.")
-    if not DECIMAL_PATTERN.match(v):
+    if isinstance(v, bool):
+        raise ValueError("El precio no puede ser un valor booleano.")
+    if isinstance(v, (int, float, Decimal)):
+        v_str = str(v)
+    elif isinstance(v, str):
+        v_str = v.strip()
+    else:
+        raise ValueError("El precio debe ser un número o una cadena decimal válida.")
+
+    if "e" in v_str.lower():
+        raise ValueError("No se permite notación científica en el precio.")
+    if not DECIMAL_PATTERN.match(v_str):
         raise ValueError("El precio debe ser un número decimal válido con hasta dos decimales.")
     try:
-        d = Decimal(v)
+        d = Decimal(v_str)
     except InvalidOperation:
         raise ValueError("El precio no es un valor decimal válido.")
     if d <= Decimal("0"):
         raise ValueError("El precio debe ser un valor estrictamente positivo mayor que cero.")
     if d > Decimal("99999999.99"):
         raise ValueError("El precio excede el valor máximo permitido (99999999.99).")
-    return v
+    return f"{d:.2f}"
 
 
 def validate_activo_bool(v: Any) -> bool:
@@ -57,7 +66,7 @@ class ProductoCreate(BaseModel):
 
     nombre: str
     descripcion: str | None = None
-    precio: str
+    precio: str | float | int
     activo: bool = True
 
     @field_validator("nombre", mode="before")
@@ -86,7 +95,7 @@ class ProductoUpdate(BaseModel):
 
     nombre: str | None = None
     descripcion: str | None = None
-    precio: str | None = None
+    precio: str | float | int | None = None
     activo: bool | None = None
 
     @field_validator("nombre", mode="before")

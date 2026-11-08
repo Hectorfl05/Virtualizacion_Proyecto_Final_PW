@@ -120,18 +120,36 @@ def test_create_producto_rejects_long_descripcion(client):
 
 
 @pytest.mark.parametrize(
+    "valid_precio,expected_precio",
+    [
+        (5.5, "5.50"),
+        (5, "5.00"),
+        ("5.50", "5.50"),
+        ("12.99", "12.99"),
+        ("100", "100.00"),
+    ],
+)
+def test_create_producto_accepts_float_int_and_str_precio(client, valid_precio, expected_precio):
+    response = client.post("/productos", json={"nombre": "Pan Flexible", "precio": valid_precio})
+    assert response.status_code == 201
+    assert response.json()["precio"] == expected_precio
+
+
+@pytest.mark.parametrize(
     "bad_precio",
     [
-        5.5,  # float
-        5,  # int
         "0",  # non-positive
         "0.00",  # zero
-        "-3.50",  # negative
-        "5.555",  # more than 2 decimals
+        -3.50,  # negative float
+        "-3.50",  # negative string
+        5.555,  # more than 2 decimals float
+        "5.555",  # more than 2 decimals string
         "1e2",  # exponential
         "abc",  # not numeric
         "",  # empty
         None,  # null
+        True,  # boolean
+        False,  # boolean
     ],
 )
 def test_create_producto_rejects_invalid_precio(client, bad_precio):

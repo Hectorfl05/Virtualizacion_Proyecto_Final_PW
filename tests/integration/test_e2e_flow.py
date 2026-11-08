@@ -33,7 +33,7 @@ def test_health_endpoints():
 
         res = client.get(f"{PRODUCTOS_URL}/health/ready")
         assert res.status_code == 200, f"Productos ready falló: {res.text}"
-        assert res.json() == {"status": "ok"}
+        assert res.json() == {"status": "ready"}
 
         # Pedidos
         res = client.get(f"{PEDIDOS_URL}/health/live")
@@ -42,7 +42,7 @@ def test_health_endpoints():
 
         res = client.get(f"{PEDIDOS_URL}/health/ready")
         assert res.status_code == 200, f"Pedidos ready falló: {res.text}"
-        assert res.json() == {"status": "ok"}
+        assert res.json() == {"status": "ready"}
 
 
 def test_full_e2e_lifecycle():
@@ -52,7 +52,7 @@ def test_full_e2e_lifecycle():
         producto_payload = {
             "nombre": "Croissant de Almendras E2E",
             "descripcion": "Hojaldre horneado con almendras y mantequilla",
-            "precio": 18.50,
+            "precio": "18.50",
             "activo": True,
         }
         res_prod = client.post(f"{PRODUCTOS_URL}/productos", json=producto_payload)
@@ -108,7 +108,7 @@ def test_full_e2e_lifecycle():
                 # 6. Modificar y desactivar Producto original
                 res_patch_prod = client.patch(
                     f"{PRODUCTOS_URL}/productos/{producto_id}",
-                    json={"precio": 25.00, "activo": False},
+                    json={"precio": "25.00", "activo": False},
                 )
                 assert res_patch_prod.status_code == 200
                 assert Decimal(str(res_patch_prod.json()["precio"])) == Decimal("25.00")
@@ -129,7 +129,7 @@ def test_full_e2e_lifecycle():
                 )
                 assert res_inactivo.status_code == 422
                 error_body = res_inactivo.json()
-                assert error_body["error"]["code"] == "product_inactive"
+                assert error_body["detail"][0]["code"] == "product_inactive"
 
             finally:
                 # 9. Eliminación física de Pedido
