@@ -1,0 +1,8 @@
+# Copia este archivo a terraform.tfvars y reemplaza los valores.
+# NO subas terraform.tfvars a Git.
+
+project_id               = "REEMPLAZAR_POR_ID_PROYECTO_GCP"
+region                   = "us-central1"
+zone                     = "us-central1-a"
+cluster_name             = "panaderia-grupo-4"
+artifact_repository_name = "panaderia-repo"
