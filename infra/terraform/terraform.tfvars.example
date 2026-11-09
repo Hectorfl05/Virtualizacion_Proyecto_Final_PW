@@ -1,5 +1,4 @@
-# Copia este archivo a terraform.tfvars y reemplaza los valores.
-# NO subas terraform.tfvars a Git.
+# Formato de arreglo para las credenciales del terraform
 
 project_id               = "REEMPLAZAR_POR_ID_PROYECTO_GCP"
 region                   = "us-central1"
