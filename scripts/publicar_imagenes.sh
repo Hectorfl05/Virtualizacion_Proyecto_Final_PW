@@ -20,6 +20,16 @@ traer_base() {
   timeout 180 docker pull -q "mirror.gcr.io/library/${imagen}" >/dev/null
   docker tag "mirror.gcr.io/library/${imagen}" "$imagen"
 }
+# La red de Cloud Shell a veces rechaza conexiones de forma intermitente: se reintenta el envio.
+subir() {
+  for intento in 1 2 3 4 5 6; do
+    docker push -q "$1" >/dev/null && return 0
+    echo "  envio fallido (intento ${intento}), reintentando..."
+    sleep 8
+  done
+  return 1
+}
+
 traer_base python:3.12-slim
 traer_base nginx:1.27-alpine
 traer_base postgres:16
@@ -27,12 +37,12 @@ traer_base postgres:16
 for servicio in productos pedidos frontend; do
   echo "==> ${servicio}:${VERSION}"
   docker build -q -t "${REG}/${servicio}:${VERSION}" "${RAIZ}/services/${servicio}" >/dev/null
-  docker push -q "${REG}/${servicio}:${VERSION}" >/dev/null
+  subir "${REG}/${servicio}:${VERSION}"
 done
 
 echo "==> postgres:16"
 docker tag postgres:16 "${REG}/postgres:16"
-docker push -q "${REG}/postgres:16" >/dev/null
+subir "${REG}/postgres:16"
 
 echo "Imagenes publicadas en ${REG}:"
 gcloud artifacts docker images list "${REG}" --format="value(package,tags)" | sort -u
