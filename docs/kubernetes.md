@@ -152,6 +152,7 @@ gcloud auth configure-docker us-central1-docker.pkg.dev
 # Construir y etiquetar
 docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.0.0 ./services/productos
 docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.0.0 ./services/pedidos
+docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.0.0 ./services/frontend
 
 # Copiar imagen de postgres oficial a Artifact Registry
 docker pull postgres:16
@@ -160,6 +161,7 @@ docker tag postgres:16 us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/po
 # Publicar
 docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.0.0
 docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.0.0
+docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.0.0
 docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/postgres:16
 ```
 

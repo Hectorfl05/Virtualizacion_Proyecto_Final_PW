@@ -124,13 +124,14 @@ Esta opción despliega toda la arquitectura de pods, volúmenes y servicios en K
    ./scripts/test_k8s_endpoints.sh
    ```
    El script realiza automáticamente todo el ciclo:
-   - Compila las imágenes Docker locales de `productos` y `pedidos`.
+   - Compila las imágenes Docker locales de `productos`, `pedidos` y `frontend`.
    - Crea el namespace `panaderia-grupo-4` y el ConfigMap compartido.
    - Genera el Secret seguro `panaderia-secrets` si no existe.
    - Despliega PostgreSQL 16 y espera a que su PVC de 10Gi esté enlazado y listo.
    - Ejecuta los Jobs de migración Alembic (`productos-migration-job` y `pedidos-migration-job`) de forma aislada.
-   - Despliega los microservicios con 2 réplicas cada uno y servicios `type: LoadBalancer`.
+   - Despliega los microservicios y el frontend con 2 réplicas cada uno y servicios `type: LoadBalancer`.
    - Ejecuta la suite de pruebas E2E contra los pods activos para certificar que todo funciona.
+   - Puebla la base de datos con catálogo inicial y carnés del equipo (Criterio A4).
 
 3. **Verificar el estado de los recursos en Kubernetes**:
    ```bash
@@ -139,10 +140,12 @@ Esta opción despliega toda la arquitectura de pods, volúmenes y servicios en K
 
 4. **Acceso a los endpoints en el Host**:
    Al usar servicios `type: LoadBalancer`, los puertos se enlazan nativamente a `localhost`:
+   * 🥐 **Interfaz Web de la Panadería (Frontend)**: [http://localhost:8080](http://localhost:8080)
    * 🥐 **Swagger de Productos**: [http://localhost:8001/docs](http://localhost:8001/docs)
    * 📦 **Swagger de Pedidos**: [http://localhost:8002/docs](http://localhost:8002/docs)
    * 🩺 **Salud Productos**: [http://localhost:8001/health/live](http://localhost:8001/health/live)
    * 🩺 **Salud Pedidos**: [http://localhost:8002/health/live](http://localhost:8002/health/live)
+   * 🩺 **Salud Frontend**: [http://localhost:8080/health](http://localhost:8080/health)
 
 5. **Prueba rápida desde la terminal**:
    * En Linux / WSL:
@@ -182,10 +185,11 @@ Ideal para desarrollo local rápido con contenedores:
    docker compose run --rm productos-migrate
    docker compose run --rm pedidos-migrate
    ```
-4. **Levantar los microservicios web**:
+4. **Levantar los microservicios web y el frontend**:
    ```bash
-   docker compose up -d productos pedidos
+   docker compose up -d productos pedidos frontend
    ```
+   * Accede a la interfaz web en: [http://localhost:8080](http://localhost:8080)
 5. **Comprobar la persistencia tras reinicio**:
    ```bash
    ./scripts/test_persistence.sh
