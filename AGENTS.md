@@ -116,7 +116,7 @@ De acuerdo con el documento oficial **«Proyecto Final GKE.pdf»** y la lista de
   - Jose Enriquez (`1053223`)
   - Sofia Singüenza (`1333123`)
 - [ ] **Carnés registrados en la base de datos (Criterio A4)**: Incorporar un script de carga inicial / migración que inserte y persista los carnés de los integrantes en la base de datos.
-- [ ] **Manifiesto Kubernetes para Frontend**: Declarar en `deploy/k8s/` el Deployment y el Service (`type: LoadBalancer`) del frontend para actuar como el punto de entrada público que enruta hacia los servicios internos por DNS.
+- [x] **Manifiesto Kubernetes para Frontend**: Declarar en `deploy/k8s/` el Deployment y el Service (`type: LoadBalancer`) del frontend para actuar como el punto de entrada público que enruta hacia los servicios internos por DNS.
 
 ### 2. Infraestructura como Código con Terraform (Criterios D1, D2, D5, G1)
 - [ ] **Archivos declarativos en `infra/terraform/`**:

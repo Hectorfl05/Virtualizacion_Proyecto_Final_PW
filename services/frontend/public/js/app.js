@@ -1,12 +1,12 @@
 // ============================================================
 // Configuración de URLs
-// Cambia estas variables según el entorno
+// Con Reverse Proxy en Nginx, todas las peticiones
+// se realizan a través de rutas relativas (/api). De este modo,
+// el frontend y backend comparten el mismo origen, eliminando
+// cualquier restricción de CORS tanto en local como en Kubernetes.
 // ============================================================
-const isLocal = window.location.hostname === "localhost" || 
-                window.location.hostname === "127.0.0.1";
-
-const PRODUCTOS_URL = isLocal ? "http://localhost:8001" : "http://productos:8000";
-const PEDIDOS_URL   = isLocal ? "http://localhost:8002" : "http://pedidos:8000";
+const PRODUCTOS_URL = "/api";
+const PEDIDOS_URL   = "/api";
 
 // ============================================================
 // Utilidades

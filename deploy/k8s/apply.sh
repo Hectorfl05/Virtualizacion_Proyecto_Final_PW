@@ -71,15 +71,17 @@ kubectl wait --namespace "$NAMESPACE" \
     --for=condition=complete job/pedidos-migration-job \
     --timeout=120s
 
-# 6. Microservicios Web
+# 6. Microservicios Web y Frontend
 echo ""
-echo "[Paso 6/6] Desplegando microservicios Productos y Pedidos..."
+echo "[Paso 6/7] Desplegando microservicios Productos, Pedidos y Frontend..."
 kubectl apply -f "$SCRIPT_DIR/06-productos.yaml"
 kubectl apply -f "$SCRIPT_DIR/07-pedidos.yaml"
+kubectl apply -f "$SCRIPT_DIR/08-frontend.yaml"
 
 echo "  -> Esperando que los Deployments estén disponibles..."
 kubectl rollout status deployment/productos -n "$NAMESPACE" --timeout=120s
 kubectl rollout status deployment/pedidos -n "$NAMESPACE" --timeout=120s
+kubectl rollout status deployment/frontend -n "$NAMESPACE" --timeout=120s
 
 echo ""
 echo "================================================================="

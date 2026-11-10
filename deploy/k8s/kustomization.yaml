@@ -10,6 +10,7 @@ resources:
   - 04-postgres.yaml
   - 06-productos.yaml
   - 07-pedidos.yaml
+  - 08-frontend.yaml
 
 # Nota: 05-migration-jobs.yaml se aplica como paso intermedio explícito
 # tras validar que postgres esté listo, y 02-secret.example.yaml debe
