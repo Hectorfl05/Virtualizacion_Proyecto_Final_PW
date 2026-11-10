@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panadería · Grupo 4 — Power Rangers</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header>
+    <div class="brand">
+      <h1>🥐 Panadería</h1>
+      <p>Grupo 4 — Power Rangers · Proyecto Final Virtualización</p>
+    </div>
+    <div class="team-badge">
+      Namespace: <strong>panaderia-grupo-4</strong>
+    </div>
+  </header>
+
+  <!-- ========== EQUIPO (Criterio A4) ========== -->
+  <section class="team-section">
+    <h2>Integrantes del equipo</h2>
+    <ul class="team-list">
+      <li>Hector Flores — <strong>1199923</strong></li>
+      <li>Joaquin Choc — <strong>1280423</strong></li>
+      <li>Daniel Diaz — <strong>1040023</strong></li>
+      <li>Jose Enriquez — <strong>1053223</strong></li>
+      <li>Sofia Singüenza — <strong>1333123</strong></li>
+    </ul>
+  </section>
+
+  <!-- ========== MAIN ========== -->
+  <main>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="productos">Productos</button>
+      <button class="tab" data-tab="pedidos">Pedidos</button>
+    </div>
+
+    <!-- ==================== PANEL PRODUCTOS ==================== -->
+    <div id="panel-productos" class="panel active">
+
+      <!-- Formulario Crear / Editar Producto -->
+      <div class="card">
+        <h3 id="form-producto-title">Nuevo Producto</h3>
+        <form id="form-producto">
+          <input type="hidden" id="producto-id" />
+          <div class="form-grid">
+            <div>
+              <label for="producto-nombre">Nombre *</label>
+              <input type="text" id="producto-nombre" required maxlength="150" placeholder="Ej. Croissant de almendras" />
+            </div>
+            <div>
+              <label for="producto-precio">Precio (Q) *</label>
+              <input type="number" id="producto-precio" required min="0.01" step="0.01" placeholder="12.50" />
+            </div>
+            <div>
+              <label for="producto-activo">Estado</label>
+              <select id="producto-activo">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label for="producto-descripcion">Descripción</label>
+            <textarea id="producto-descripcion" rows="2" maxlength="1000" placeholder="Descripción opcional del producto"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-guardar-producto">Crear Producto</button>
+            <button type="button" class="btn btn-secondary" id="btn-cancelar-producto" style="display:none;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Listado de Productos -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Catálogo de Productos</h3>
+          <button class="btn btn-outline" id="btn-refresh-productos">↻ Actualizar</button>
+        </div>
+        <div id="productos-loading" class="loading" style="display:none;">Cargando productos...</div>
+        <div id="productos-error" class="alert alert-error" style="display:none;"></div>
+        <div class="table-wrapper">
+          <table id="tabla-productos">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-productos">
+              <!-- Se llena con JS -->
+            </tbody>
+          </table>
+        </div>
+        <p id="productos-empty" class="empty-state" style="display:none;">No hay productos registrados.</p>
+      </div>
+    </div>
+
+    <!-- ==================== PANEL PEDIDOS ==================== -->
+    <div id="panel-pedidos" class="panel">
+
+      <!-- Formulario Crear / Editar Pedido -->
+      <div class="card">
+        <h3 id="form-pedido-title">Nuevo Pedido</h3>
+        <form id="form-pedido">
+          <input type="hidden" id="pedido-id" />
+          <div class="form-grid">
+            <div>
+              <label for="pedido-producto">Producto *</label>
+              <select id="pedido-producto" required>
+                <option value="">Seleccione un producto...</option>
+                <!-- Se llena dinámicamente con productos activos -->
+              </select>
+            </div>
+            <div>
+              <label for="pedido-cantidad">Cantidad *</label>
+              <input type="number" id="pedido-cantidad" required min="1" step="1" value="1" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-guardar-pedido">Crear Pedido</button>
+            <button type="button" class="btn btn-secondary" id="btn-cancelar-pedido" style="display:none;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Listado de Pedidos -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Pedidos Registrados</h3>
+          <button class="btn btn-outline" id="btn-refresh-pedidos">↻ Actualizar</button>
+        </div>
+        <div id="pedidos-loading" class="loading" style="display:none;">Cargando pedidos...</div>
+        <div id="pedidos-error" class="alert alert-error" style="display:none;"></div>
+        <div class="table-wrapper">
+          <table id="tabla-pedidos">
+            <thead>
+              <tr>
+                <th>Producto (histórico)</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Total</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-pedidos">
+              <!-- Se llena con JS -->
+            </tbody>
+          </table>
+        </div>
+        <p id="pedidos-empty" class="empty-state" style="display:none;">No hay pedidos registrados.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast de notificaciones -->
+  <div id="toast" class="toast" style="display:none;"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
