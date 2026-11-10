@@ -11,11 +11,11 @@
 
 | Nombre | Carné | Rol / Responsabilidad |
 | --- | --- | --- |
-| Hector Flores | `1199923` | Backend, Arquitectura e Integración |
-| Joaquin Choc | `1280423` | Backend, Infraestructura y Manifiestos K8s |
-| Daniel Diaz | `1040023` | Backend, Modelos de Datos y Pruebas |
-| Jose Enriquez | `1053223` | Backend, Migraciones y Contenedores |
-| Sofia Singüenza | `1333123` | Backend, Validación y Documentación |
+| Hector Flores | `1199923` | Backend, Infraestructura y Manifiestos K8s  |
+| Joaquin Choc | `1280423` | Backend, Arquitectura e Integración  |
+| Daniel Diaz | `1040023` | Modelos de Datos y Pruebas |
+| Jose Enriquez | `1053223` | Frontend, Migraciones y Contenedores |
+| Sofia Singüenza | `1333123` | Frontend, Validación y Documentación |
 
 ---
 
