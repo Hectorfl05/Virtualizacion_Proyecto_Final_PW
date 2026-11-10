@@ -65,13 +65,13 @@ flowchart TB
     AR -.->|"Pull de imágenes"| NODES
     YAML --> NS
 
-    %% Estilos visuales
-    style TF fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style YAML fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style AR fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
-    style NODES fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style NS fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5
+    %% Estilos visuales con contraste explícito de texto
+    style TF fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style YAML fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style AR fill:#e6f4ea,stroke:#137333,stroke-width:1.5px,color:#137333
+    style NODES fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style NS fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5,color:#1f2328
 ```
 
 ### 2. Arquitectura de Runtime en Google Kubernetes Engine (GKE)
@@ -131,29 +131,29 @@ flowchart TB
         PVC --> PV
     end
 
-    %% Estilos visuales
-    style CLIENT fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style PUBLIC_IP fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style JOBS fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style CFG fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style PVC fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
-    style PV fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    %% Estilos visuales con contraste explícito de texto
+    style CLIENT fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style PUBLIC_IP fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style JOBS fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style CFG fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style PVC fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
+    style PV fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px,color:#1f2328
     
-    style SVC_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style DEP_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style SVC_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style SVC_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style DEP_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
-    style DEP_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style SVC_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style DEP_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style SVC_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style SVC_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style DEP_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
+    style DEP_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px,color:#311b92
     
-    style SVC_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
-    style DEP_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
-    style DB_PROD fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
-    style DB_PED fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+    style SVC_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px,color:#137333
+    style DEP_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px,color:#137333
+    style DB_PROD fill:#e6f4ea,stroke:#137333,stroke-width:1.5px,color:#137333
+    style DB_PED fill:#e6f4ea,stroke:#137333,stroke-width:1.5px,color:#137333
 
-    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5
-    style NS fill:#ffffff,stroke:#70757a,stroke-width:1.5px
-    style DB_INST fill:#ffffff,stroke:#70757a,stroke-width:1px,stroke-dasharray: 4 4
+    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5,color:#1f2328
+    style NS fill:#ffffff,stroke:#70757a,stroke-width:1.5px,color:#1f2328
+    style DB_INST fill:#ffffff,stroke:#70757a,stroke-width:1px,stroke-dasharray: 4 4,color:#1f2328
 ```
 
 ---
