@@ -224,6 +224,13 @@ document.getElementById("form-producto").addEventListener("submit", async (e) =>
   }
 });
 
+function detailMessage(errData, status) {
+  const d = errData && errData.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d) && d.length) return d.map(e => e.msg || e).join(", ");
+  return `Error ${status}`;
+}
+
 async function deleteProducto(id, nombre) {
   if (!confirm(`¿Eliminar el producto "${nombre}"?\n\nEsta acción es permanente.`)) return;
 
@@ -234,7 +241,7 @@ async function deleteProducto(id, nombre) {
 
     if (!res.ok && res.status !== 204) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || `Error ${res.status}`);
+      throw new Error(detailMessage(errData, res.status));
     }
 
     showToast("Producto eliminado", "success");
@@ -470,7 +477,7 @@ async function deletePedido(id) {
 
     if (!res.ok && res.status !== 204) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || `Error ${res.status}`);
+      throw new Error(detailMessage(errData, res.status));
     }
 
     showToast("Pedido eliminado", "success");
