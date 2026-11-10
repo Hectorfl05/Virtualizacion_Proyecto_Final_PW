@@ -1,0 +1,13 @@
+# Entorno común de desarrollo y pruebas, Python 3.12.
+# Unión de dependencias declaradas en los pyproject.toml de ambos servicios.
+# No sustituye los uv.lock independientes de cada servicio.
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+pydantic>=2.10,<3
+pydantic-settings>=2.7,<3
+sqlalchemy>=2.0,<3
+psycopg[binary]>=3.2,<4
+alembic>=1.14,<2
+pytest>=8.3,<10
+httpx>=0.28,<1
+ruff>=0.9,<1

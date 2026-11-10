@@ -1,0 +1,153 @@
+# ConfigMap con el script de inicialización de PostgreSQL (01-create-databases.sh)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+data:
+  01-create-databases.sh: |
+    #!/bin/sh
+    set -eu
+    # No imprimir variables ni activar trazas: contienen credenciales.
+    psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --set=ON_ERROR_STOP=1 <<'SQL'
+    \getenv productos_password PRODUCTOS_DB_PASSWORD
+    \getenv pedidos_password PEDIDOS_DB_PASSWORD
+    CREATE ROLE productos_app LOGIN PASSWORD :'productos_password';
+    CREATE ROLE pedidos_app LOGIN PASSWORD :'pedidos_password';
+    CREATE DATABASE productos_db OWNER productos_app;
+    CREATE DATABASE pedidos_db OWNER pedidos_app;
+    REVOKE ALL ON DATABASE productos_db FROM PUBLIC;
+    REVOKE ALL ON DATABASE pedidos_db FROM PUBLIC;
+    GRANT CONNECT ON DATABASE productos_db TO productos_app;
+    GRANT CONNECT ON DATABASE pedidos_db TO pedidos_app;
+    \connect productos_db
+    REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+    GRANT ALL ON SCHEMA public TO productos_app;
+    \connect pedidos_db
+    REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+    GRANT ALL ON SCHEMA public TO pedidos_app;
+    SQL
+---
+# Deployment de PostgreSQL con réplica única y estrategia Recreate
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/part-of: panaderia-grupo-4
+        team: power-rangers
+    spec:
+      containers:
+        - name: postgres
+          # Reemplazar con la ruta de Artifact Registry configurada en Terraform
+          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              value: "panaderia_admin"
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: panaderia-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: panaderia-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PRODUCTOS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: panaderia-secrets
+                  key: PRODUCTOS_DB_PASSWORD
+            - name: PEDIDOS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: panaderia-secrets
+                  key: PEDIDOS_DB_PASSWORD
+          ports:
+            - name: postgresql
+              containerPort: 5432
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - panaderia_admin
+                - -d
+                - postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - panaderia_admin
+                - -d
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres-data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d/01-create-databases.sh
+              subPath: 01-create-databases.sh
+              readOnly: true
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+            defaultMode: 0755
+---
+# Service interno para PostgreSQL (DNS: postgres.panaderia-grupo-4.svc.cluster.local)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+  selector:
+    app.kubernetes.io/name: postgres

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: panaderia-config
+  namespace: panaderia-grupo-4
+  labels:
+    app.kubernetes.io/name: panaderia
+    app.kubernetes.io/part-of: panaderia-grupo-4
+    team: power-rangers
+data:
+  LOG_LEVEL: "INFO"
+  DB_CONNECT_TIMEOUT_SECONDS: "3"
+  POSTGRES_HOST: "postgres.panaderia-grupo-4.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "postgres"
+  PRODUCTOS_DB_NAME: "productos_db"
+  PRODUCTOS_DB_USER: "productos_app"
+  PEDIDOS_DB_NAME: "pedidos_db"
+  PEDIDOS_DB_USER: "pedidos_app"
+  PRODUCTOS_BASE_URL: "http://productos.panaderia-grupo-4.svc.cluster.local:8000"
+  PRODUCTOS_TIMEOUT_SECONDS: "5.0"

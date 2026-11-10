@@ -1,0 +1,115 @@
+name: panaderia-grupo-4
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: panaderia_admin
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definir POSTGRES_PASSWORD en .env}
+      PRODUCTOS_DB_PASSWORD: ${PRODUCTOS_DB_PASSWORD:?Definir PRODUCTOS_DB_PASSWORD en .env}
+      PEDIDOS_DB_PASSWORD: ${PEDIDOS_DB_PASSWORD:?Definir PEDIDOS_DB_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/01-create-databases.sh:/docker-entrypoint-initdb.d/01-create-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U panaderia_admin -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # --- Servicios de migración bajo demanda (Profiles: migration) ---
+  productos-migrate:
+    build:
+      context: ./services/productos
+      dockerfile: Dockerfile
+    profiles: ["migration", "tools"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://productos_app:${PRODUCTOS_DB_PASSWORD:?Definir PRODUCTOS_DB_PASSWORD en .env}@postgres:5432/productos_db
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  pedidos-migrate:
+    build:
+      context: ./services/pedidos
+      dockerfile: Dockerfile
+    profiles: ["migration", "tools"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://pedidos_app:${PEDIDOS_DB_PASSWORD:?Definir PEDIDOS_DB_PASSWORD en .env}@postgres:5432/pedidos_db
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- Microservicios Web (Uvicorn / FastAPI) ---
+  productos:
+    build:
+      context: ./services/productos
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://productos_app:${PRODUCTOS_DB_PASSWORD:?Definir PRODUCTOS_DB_PASSWORD en .env}@postgres:5432/productos_db
+      DB_CONNECT_TIMEOUT_SECONDS: 3
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  pedidos:
+    build:
+      context: ./services/pedidos
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8002:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://pedidos_app:${PEDIDOS_DB_PASSWORD:?Definir PEDIDOS_DB_PASSWORD en .env}@postgres:5432/pedidos_db
+      PRODUCTOS_BASE_URL: http://productos:8000
+      PRODUCTOS_TIMEOUT_SECONDS: 5.0
+      DB_CONNECT_TIMEOUT_SECONDS: 3
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      productos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      productos:
+        condition: service_healthy
+      pedidos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
