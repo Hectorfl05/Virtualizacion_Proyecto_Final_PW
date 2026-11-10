@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: panaderia-grupo-4
     team: power-rangers
 spec:
-  replicas: 3
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
