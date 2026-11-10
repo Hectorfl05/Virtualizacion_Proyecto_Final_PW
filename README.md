@@ -42,6 +42,122 @@ Sistema distribuido compuesto por dos microservicios desacoplados construidos en
 
 ---
 
+## Arquitectura del Sistema (Criterio A3)
+
+### 1. Flujo de Aprovisionamiento de Infraestructura
+Terraform declara y gestiona exclusivamente la infraestructura en Google Cloud (Clúster GKE Zonal de 2 nodos `e2-small` Spot y el repositorio Docker en Artifact Registry). Los objetos y componentes de Kubernetes son administrados mediante manifiestos YAML y `kubectl`.
+
+```mermaid
+flowchart TB
+    TF["Terraform<br/>Infraestructura declarativa"]
+    AR["Artifact Registry<br/>4 imágenes, tags inmutables"]
+    YAML["YAML + kubectl<br/>Objetos del namespace"]
+
+    subgraph GKE ["GKE Standard zonal"]
+        NODES["Nodos del clúster<br/>Node pool · 2 x e2-small spot"]
+        NS["Namespace panaderia-grupo-4<br/>Pods de los Deployments"]
+        
+        NODES -->|"ejecutan"| NS
+    end
+
+    TF --> AR
+    TF --> NODES
+    AR -.->|"Pull de imágenes"| NODES
+    YAML --> NS
+
+    %% Estilos visuales
+    style TF fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style YAML fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style AR fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+    style NODES fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style NS fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5
+```
+
+### 2. Arquitectura de Runtime en Google Kubernetes Engine (GKE)
+El punto de entrada público es el Service LoadBalancer del Frontend (puerto 80), el cual sirve la interfaz de usuario y actúa como reverse proxy hacia los microservicios de Productos y Pedidos a través de nombres DNS internos de Kubernetes. PostgreSQL opera con réplica única, estrategia `Recreate` y persistencia mediante PersistentVolumeClaim (PVC).
+
+```mermaid
+flowchart TB
+    CLIENT["Navegador<br/>Interfaz web"]
+    PUBLIC_IP["IP pública :80<br/>Balanceador de carga externo"]
+
+    CLIENT --> PUBLIC_IP
+
+    subgraph GKE ["GKE Standard zonal · panaderia-grupo-4<br/>Node pool: 2 nodos e2-small spot"]
+        PUBLIC_IP --> SVC_FE
+
+        subgraph NS ["Namespace panaderia-grupo-4"]
+            SVC_FE["Service frontend<br/>LoadBalancer · :80"]
+            DEP_FE["Deployment frontend<br/>Nginx · 2 réplicas · :8080"]
+            
+            SVC_PROD["Service productos :8000<br/>/api/productos → /productos"]
+            SVC_PED["Service pedidos :8000<br/>/api/pedidos → /pedidos"]
+            
+            DEP_PROD["Deployment Productos<br/>FastAPI · SQL a productos_db"]
+            DEP_PED["Deployment Pedidos<br/>FastAPI · SQL a pedidos_db"]
+            
+            JOBS["Jobs Alembic<br/>Migraciones"]
+            SVC_PG["Service postgres :5432"]
+            DEP_PG["Deployment PostgreSQL 16<br/>1 réplica · Recreate"]
+            CFG["ConfigMap + Secret<br/>Config y credenciales"]
+            
+            subgraph DB_INST ["Una instancia PostgreSQL · 2 bases lógicas"]
+                DB_PROD[("productos_db<br/>usuario productos_app")]
+                DB_PED[("pedidos_db<br/>usuario pedidos_app")]
+            end
+
+            PVC["PVC<br/>Datos PostgreSQL"]
+
+            SVC_FE --> DEP_FE
+            DEP_FE --> SVC_PROD
+            DEP_FE --> SVC_PED
+            
+            SVC_PROD --> DEP_PROD
+            SVC_PED --> DEP_PED
+            DEP_PED -.->|"Valida producto (HTTP)"| SVC_PROD
+
+            DEP_PROD --> SVC_PG
+            DEP_PED --> SVC_PG
+            JOBS --> SVC_PG
+
+            SVC_PG --> DEP_PG
+            CFG -.-> DEP_PG
+            DEP_PG --> DB_INST
+            DB_INST --> PVC
+        end
+
+        PV["PersistentVolume<br/>Disco persistente GCP"]
+        PVC --> PV
+    end
+
+    %% Estilos visuales
+    style CLIENT fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style PUBLIC_IP fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style JOBS fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style CFG fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style PVC fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    style PV fill:#f2efe9,stroke:#8c827a,stroke-width:1.5px
+    
+    style SVC_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style DEP_FE fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style SVC_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style SVC_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style DEP_PROD fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    style DEP_PED fill:#ede7f6,stroke:#5e35b1,stroke-width:1.5px
+    
+    style SVC_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+    style DEP_PG fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+    style DB_PROD fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+    style DB_PED fill:#e6f4ea,stroke:#137333,stroke-width:1.5px
+
+    style GKE fill:#ffffff,stroke:#70757a,stroke-width:1.5px,stroke-dasharray: 5 5
+    style NS fill:#ffffff,stroke:#70757a,stroke-width:1.5px
+    style DB_INST fill:#ffffff,stroke:#70757a,stroke-width:1px,stroke-dasharray: 4 4
+```
+
+---
+
 ## Estructura del Repositorio
 
 ```text
@@ -95,7 +211,6 @@ Sistema distribuido compuesto por dos microservicios desacoplados construidos en
 ├── infra/
 │   └── terraform/                     # Infraestructura como Código para Google Cloud
 └── docs/
-    ├── arquitectura.md                # Diagramas de arquitectura y flujo del sistema
     ├── contrato-api.md                # Contrato detallado de endpoints, payloads y errores
     ├── desarrollo-local.md            # Guía detallada para desarrolladores
     ├── kubernetes.md                  # Manual de objetos y despliegue en Kubernetes
@@ -278,8 +393,7 @@ python3 scripts/seed_database.py
 
 ## Documentación Técnica Adicional
 
-* 📐 [Arquitectura del Sistema y Diagramas](docs/arquitectura.md)
+* 📐 [Arquitectura del Sistema y Diagramas](#arquitectura-del-sistema-criterio-a3)
 * 📋 [Contrato de Endpoints, Payloads y Errores de API](docs/contrato-api.md)
 * ☸️ [Guía y Manifiestos de Kubernetes](docs/kubernetes.md)
 * 💻 [Guía de Desarrollo Local y Variables de Entorno](docs/desarrollo-local.md)
-* 🧪 [Registro Detallado de Pruebas y Comandos](docs/pruebas.md)
