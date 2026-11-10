@@ -85,7 +85,7 @@ echo "[Paso 4/7] Aplicando PersistentVolumeClaim y Deployment de PostgreSQL..."
 kubectl apply -f "$SCRIPT_DIR/03-postgres-pvc.yaml"
 
 if [ "$IS_LOCAL" = "true" ]; then
-    sed "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/postgres:16|${POSTGRES_IMAGE}|g" \
+    sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/postgres:16|${POSTGRES_IMAGE}|g" \
         "$SCRIPT_DIR/04-postgres.yaml" | kubectl apply -f -
 else
     kubectl apply -f "$SCRIPT_DIR/04-postgres.yaml"
@@ -104,8 +104,8 @@ echo "[Paso 5/7] Ejecutando Jobs de Migración Alembic..."
 kubectl delete job productos-migration-job pedidos-migration-job -n "$NAMESPACE" --ignore-not-found=true
 
 if [ "$IS_LOCAL" = "true" ]; then
-    sed -e "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/productos:1.0.0|${PRODUCTOS_IMAGE}|g" \
-        -e "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/pedidos:1.0.0|${PEDIDOS_IMAGE}|g" \
+    sed -e "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/productos:[^ ]*|${PRODUCTOS_IMAGE}|g" \
+        -e "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/pedidos:[^ ]*|${PEDIDOS_IMAGE}|g" \
         "$SCRIPT_DIR/05-migration-jobs.yaml" | kubectl apply -f -
 else
     kubectl apply -f "$SCRIPT_DIR/05-migration-jobs.yaml"
@@ -123,11 +123,11 @@ kubectl wait --namespace "$NAMESPACE" \
 echo ""
 echo "[Paso 6/7] Desplegando microservicios Productos, Pedidos y Frontend..."
 if [ "$IS_LOCAL" = "true" ]; then
-    sed "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/productos:1.0.0|${PRODUCTOS_IMAGE}|g" \
+    sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/productos:[^ ]*|${PRODUCTOS_IMAGE}|g" \
         "$SCRIPT_DIR/06-productos.yaml" | kubectl apply -f -
-    sed "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/pedidos:1.0.0|${PEDIDOS_IMAGE}|g" \
+    sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/pedidos:[^ ]*|${PEDIDOS_IMAGE}|g" \
         "$SCRIPT_DIR/07-pedidos.yaml" | kubectl apply -f -
-    sed "s|us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/frontend:1.0.0|${FRONTEND_IMAGE}|g" \
+    sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/frontend:[^ ]*|${FRONTEND_IMAGE}|g" \
         "$SCRIPT_DIR/08-frontend.yaml" | kubectl apply -f -
 else
     kubectl apply -f "$SCRIPT_DIR/06-productos.yaml"

@@ -31,7 +31,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: productos
-          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/productos:1.0.2
+          image: us-central1-docker.pkg.dev/virtualizacion-proyecto-pr/panaderia-repo/productos:1.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -48,6 +48,16 @@ spec:
                 secretKeyRef:
                   name: panaderia-secrets
                   key: PRODUCTOS_DATABASE_URL
+            - name: PEDIDOS_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: panaderia-config
+                  key: PEDIDOS_BASE_URL
+            - name: PEDIDOS_TIMEOUT_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: panaderia-config
+                  key: PEDIDOS_TIMEOUT_SECONDS
             - name: LOG_LEVEL
               valueFrom:
                 configMapKeyRef:

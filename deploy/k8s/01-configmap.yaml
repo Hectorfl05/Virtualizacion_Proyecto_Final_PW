@@ -19,3 +19,5 @@ data:
   PEDIDOS_DB_USER: "pedidos_app"
   PRODUCTOS_BASE_URL: "http://productos.panaderia-grupo-4.svc.cluster.local:8000"
   PRODUCTOS_TIMEOUT_SECONDS: "5.0"
+  PEDIDOS_BASE_URL: "http://pedidos.panaderia-grupo-4.svc.cluster.local:8000"
+  PEDIDOS_TIMEOUT_SECONDS: "5.0"

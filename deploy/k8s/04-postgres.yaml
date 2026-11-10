@@ -59,7 +59,7 @@ spec:
       containers:
         - name: postgres
           # Reemplazar con la ruta de Artifact Registry configurada en Terraform
-          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/postgres:16
+          image: us-central1-docker.pkg.dev/virtualizacion-proyecto-pr/panaderia-repo/postgres:16
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_USER

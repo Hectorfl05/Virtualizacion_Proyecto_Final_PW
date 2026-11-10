@@ -26,7 +26,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: migrate
-          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/productos:1.0.0
+          image: us-central1-docker.pkg.dev/virtualizacion-proyecto-pr/panaderia-repo/productos:1.1.0
           imagePullPolicy: IfNotPresent
           command: ["alembic", "upgrade", "head"]
           env:
@@ -71,7 +71,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: migrate
-          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/pedidos:1.0.0
+          image: us-central1-docker.pkg.dev/virtualizacion-proyecto-pr/panaderia-repo/pedidos:1.1.0
           imagePullPolicy: IfNotPresent
           command: ["alembic", "upgrade", "head"]
           env:
