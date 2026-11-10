@@ -31,7 +31,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: frontend
-          image: us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/frontend:1.0.0
+          image: us-central1-docker.pkg.dev/panaderia-grupo-4/panaderia-repo/frontend:1.0.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -44,11 +44,11 @@ spec:
               containerPort: 8080
           resources:
             requests:
-              cpu: 25m
-              memory: 64Mi
+              cpu: 10m
+              memory: 16Mi
             limits:
               cpu: 100m
-              memory: 128Mi
+              memory: 64Mi
           livenessProbe:
             httpGet:
               path: /health
