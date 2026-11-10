@@ -5,11 +5,11 @@ Diseño propio de Fase 1 que representa la arquitectura objetivo. En Fase 2 se a
 ```mermaid
 flowchart TB
     browser["Navegador: interfaz web"]
-    public["Service LoadBalancer: IP pública"]
+    public["Service frontend: LoadBalancer (IP pública :80)"]
     subgraph gke["GKE Standard zonal: cluster panaderia-grupo-4"]
         nodes["Node pool: 2 nodos e2-small spot"]
         subgraph ns["Namespace panaderia-grupo-4"]
-            web["Deployment frontend + proxy"]
+            web["Deployment frontend: Nginx (2 réplicas, :8080)"]
             ps["Service productos:8000"]
             os["Service pedidos:8000"]
             p["Deployment Productos: FastAPI"]
@@ -52,7 +52,7 @@ El Service público también pertenece al namespace del equipo; se dibuja junto 
 
 ## Acceso y comunicación
 
-El frontend sirve la interfaz y actúa como proxy del mismo origen. Conserva método, cuerpo, query string y estado HTTP al dirigir `/api/productos` y sus subrutas a `http://productos:8000/productos`, y `/api/pedidos` y sus subrutas a `http://pedidos:8000/pedidos`. La eliminación del prefijo `/api` debe implementarse explícitamente. Productos, Pedidos y PostgreSQL usan Services internos `ClusterIP`.
+El frontend sirve la interfaz y actúa como proxy del mismo origen. Conserva método, cuerpo, query string y estado HTTP al dirigir `/api/productos` y sus subrutas a `http://productos:8000/productos`, y `/api/pedidos` y sus subrutas a `http://pedidos:8000/pedidos`. La eliminación del prefijo `/api` está implementada en la configuración de Nginx (`services/frontend/nginx.conf`) mediante directivas `proxy_pass` dedicadas. Productos, Pedidos y PostgreSQL usan Services internos `ClusterIP`.
 
 El navegador solo consume el origen público; los DNS `productos`, `pedidos` y `postgres` son para contenedores dentro del namespace. Pedidos usa `PRODUCTOS_BASE_URL=http://productos:8000`. No se necesitan IPs de pods ni CORS para esta integración del mismo origen. HTTP es el acceso inicial propuesto; dominio y TLS no se han configurado.
 

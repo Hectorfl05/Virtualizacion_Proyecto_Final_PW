@@ -55,6 +55,7 @@ El archivo [compose.yaml](../compose.yaml) coordina los siguientes servicios en 
 | `pedidos-migrate` | `./services/pedidos` (perfil `migration`) | N/A | N/A | Ejecuta `alembic upgrade head` para Pedidos y finaliza. |
 | `productos` | `./services/productos` | `8001` | `8000` | Microservicio de Productos. |
 | `pedidos` | `./services/pedidos` | `8002` | `8000` | Microservicio de Pedidos. Conecta con Productos vía `http://productos:8000`. |
+| `frontend` | `./services/frontend` | `8080` | `8080` | Interfaz Web y Reverse Proxy Nginx hacia `/api/productos` y `/api/pedidos`. |
 
 ### Comprobaciones de Salud (`healthcheck`)
 - `postgres`: verifica operatividad mediante `pg_isready -U panaderia_admin -d postgres`.

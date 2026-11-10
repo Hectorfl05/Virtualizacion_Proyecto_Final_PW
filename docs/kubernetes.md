@@ -8,7 +8,7 @@ Esta guía detalla la arquitectura de objetos de Kubernetes, dimensionamiento de
 
 ```mermaid
 graph TD
-    Client["Cliente / Navegador (Internet / Host)"] -->|"IP Pública / Localhost"| LB["Service LoadBalancer / Proxy Frontend"]
+    Client["Cliente / Navegador (Internet / Host)"] -->|"HTTP :80 / :8080"| SvcFront["Service: frontend\n(LoadBalancer: 80 / 8080)"]
 
     subgraph K8sCluster["Clúster GKE Standard (2 nodos e2-small spot)"]
         subgraph NS["Namespace: panaderia-grupo-4"]
@@ -31,22 +31,32 @@ graph TD
                 JobPed["Job: pedidos-migration-job\n(alembic upgrade head)"]
             end
 
+            subgraph FrontSvc["Microservicio Frontend & Reverse Proxy"]
+                PodFront1["Pod: frontend (Nginx 10001)\nReplica 1"]
+                PodFront2["Pod: frontend (Nginx 10001)\nReplica 2"]
+            end
+
             subgraph ProdSvc["Microservicio Productos"]
-                SvcProd["Service: productos\n(LoadBalancer: 8001 / ClusterIP: 8000)"]
-                PodProd1["Pod: productos (10001)\nReplica 1"]
-                PodProd2["Pod: productos (10001)\nReplica 2"]
+                SvcProd["Service: productos\n(ClusterIP: 8000 / LB: 8001)"]
+                PodProd1["Pod: productos (FastAPI 10001)\nReplica 1"]
+                PodProd2["Pod: productos (FastAPI 10001)\nReplica 2"]
             end
 
             subgraph PedSvc["Microservicio Pedidos"]
-                SvcPed["Service: pedidos\n(LoadBalancer: 8002 / ClusterIP: 8000)"]
-                PodPed1["Pod: pedidos (10001)\nReplica 1"]
-                PodPed2["Pod: pedidos (10001)\nReplica 2"]
+                SvcPed["Service: pedidos\n(ClusterIP: 8000 / LB: 8002)"]
+                PodPed1["Pod: pedidos (FastAPI 10001)\nReplica 1"]
+                PodPed2["Pod: pedidos (FastAPI 10001)\nReplica 2"]
             end
         end
     end
 
-    LB -->|"Puerto 8001 / /api/productos"| SvcProd
-    LB -->|"Puerto 8002 / /api/pedidos"| SvcPed
+    SvcFront --> PodFront1
+    SvcFront --> PodFront2
+
+    PodFront1 -->|"Reverse Proxy /api/productos"| SvcProd
+    PodFront2 -->|"Reverse Proxy /api/productos"| SvcProd
+    PodFront1 -->|"Reverse Proxy /api/pedidos"| SvcPed
+    PodFront2 -->|"Reverse Proxy /api/pedidos"| SvcPed
 
     SvcProd --> PodProd1
     SvcProd --> PodProd2
@@ -88,11 +98,12 @@ Para garantizar alta disponibilidad y evitar desalojos por OOM (*Out Of Memory*)
 | `postgres` | 1 (Recreate) | 100m | 256Mi | 500m | 512Mi | 256 MiB |
 | `productos` | 2 (RollingUpdate) | 50m | 128Mi | 300m | 256Mi | 256 MiB |
 | `pedidos` | 2 (RollingUpdate) | 50m | 128Mi | 300m | 256Mi | 256 MiB |
+| `frontend` | 2 (RollingUpdate) | 25m | 64Mi | 100m | 128Mi | 128 MiB |
 | Migraciones (Jobs) | Efímero | 50m | 128Mi | 250m | 256Mi | 128 MiB (temporal) |
-| **Total en ejecución** | **5 pods** | **300m** | **768 MiB** | **1700m** | **1536 MiB** | **~768 MiB** |
+| **Total en ejecución** | **7 pods** | **350m** | **896 MiB** | **1900m** | **1792 MiB** | **~896 MiB** |
 
 > [!TIP]
-> Incluso al escalar declarativamente `productos` o `pedidos` a 3 réplicas (añadiendo 128 MiB), el total de memoria solicitada permanece alrededor de 896 MiB, distribuyéndose cómodamente entre los dos nodos sin saturar la cuota.
+> Incluso al escalar declarativamente `productos` o `pedidos` a 3 réplicas (añadiendo 128 MiB), el total de memoria solicitada permanece alrededor de 1024 MiB, distribuyéndose cómodamente entre los dos nodos sin saturar la cuota ni riesgo de OOM.
 
 ---
 
@@ -108,6 +119,7 @@ Para garantizar alta disponibilidad y evitar desalojos por OOM (*Out Of Memory*)
 | [`05-migration-jobs.yaml`](../deploy/k8s/05-migration-jobs.yaml) | `Job` (batch/v1) | Jobs para ejecutar `alembic upgrade head` en `productos_db` y `pedidos_db` de forma aislada. |
 | [`06-productos.yaml`](../deploy/k8s/06-productos.yaml) | `Deployment`, `Service` | 2 réplicas, usuario `appuser:10001`, probes `/health/live` y `/health/ready`, servicio ClusterIP `productos:8000`. |
 | [`07-pedidos.yaml`](../deploy/k8s/07-pedidos.yaml) | `Deployment`, `Service` | 2 réplicas, usuario `appuser:10001`, probes, consumo de Productos por DNS interno, servicio `pedidos` (LoadBalancer / ClusterIP 8000). |
+| [`08-frontend.yaml`](../deploy/k8s/08-frontend.yaml) | `Deployment`, `Service` | 2 réplicas, usuario `appuser:10001`, probes `/health`, servicio LoadBalancer `frontend:80` (punto de entrada público y reverse proxy). |
 | [`kustomization.yaml`](../deploy/k8s/kustomization.yaml) | `Kustomization` | Configuración unificada de recursos para el namespace. |
 | [`apply.sh`](../deploy/k8s/apply.sh) | Script Bash | Script de aplicación automatizado y ordenado con verificación de condiciones. |
 
@@ -168,9 +180,10 @@ O aplicar los manifiestos manualmente en el orden documentado:
    `kubectl apply -f deploy/k8s/05-migration-jobs.yaml`
    `kubectl wait --for=condition=complete job/productos-migration-job -n panaderia-grupo-4 --timeout=60s`
    `kubectl wait --for=condition=complete job/pedidos-migration-job -n panaderia-grupo-4 --timeout=60s`
-6. Desplegar microservicios (servicios expuestos vía LoadBalancer y ClusterIP):
+6. Desplegar microservicios y frontend (servicios expuestos vía LoadBalancer y ClusterIP):
    `kubectl apply -f deploy/k8s/06-productos.yaml`
    `kubectl apply -f deploy/k8s/07-pedidos.yaml`
+   `kubectl apply -f deploy/k8s/08-frontend.yaml`
 
 ---
 

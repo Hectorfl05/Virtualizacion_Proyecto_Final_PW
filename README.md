@@ -69,9 +69,14 @@ Sistema distribuido compuesto por dos microservicios desacoplados construidos en
 │       ├── 05-migration-jobs.yaml     # Jobs batch/v1 para migraciones Alembic
 │       ├── 06-productos.yaml          # Deployment (2 réplicas) y Service LoadBalancer
 │       ├── 07-pedidos.yaml            # Deployment (2 réplicas) y Service LoadBalancer
+│       ├── 08-frontend.yaml           # Deployment (2 réplicas) y Service LoadBalancer (Reverse Proxy)
 │       ├── kustomization.yaml         # Configuración Kustomize unificada
 │       └── apply.sh                   # Script de aplicación ordenado paso a paso
 ├── services/
+│   ├── frontend/
+│   │   ├── Dockerfile                 # Contenedor Nginx no-root (puerto 8080)
+│   │   ├── nginx.conf                 # Configuración de Reverse Proxy (/api) y estáticos
+│   │   └── public/                    # Archivos SPA (HTML, CSS y JS con carnés del equipo)
 │   ├── productos/
 │   │   ├── Dockerfile                 # Construcción multi-etapa con uv y usuario 10001
 │   │   ├── pyproject.toml / uv.lock   # Dependencias congeladas
