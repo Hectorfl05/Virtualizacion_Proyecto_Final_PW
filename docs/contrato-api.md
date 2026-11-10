@@ -45,7 +45,7 @@ Al crear un pedido, Pedidos consulta `GET /productos/{producto_id}` y verifica e
 
 Al actualizar únicamente cantidad se conserva nombre y precio históricos, incluso si el producto fue eliminado o desactivado. Si `producto_id` cambia, se consulta el nuevo producto y se toman sus datos actuales; si no se envía cantidad, se conserva la anterior. Enviar el mismo `producto_id` no renueva la copia histórica ni requiere consulta remota. El total siempre se calcula en el servidor.
 
-Modificar o eliminar un producto no altera pedidos previos. Listar, consultar y eliminar pedidos no consulta Productos. Tampoco se consulta Productos al modificar solo cantidad. No existen claves foráneas entre bases ni transacciones distribuidas: la validación refleja el estado del producto en el momento de la consulta.
+Modificar un producto no altera pedidos previos, y un producto con pedidos no puede eliminarse (`409`); `activo=false` impide nuevos pedidos. Listar, consultar y eliminar pedidos no consulta Productos. Tampoco se consulta Productos al modificar solo cantidad. No existen claves foráneas entre bases ni transacciones distribuidas: la validación refleja el estado del producto en el momento de la consulta.
 
 ## Representaciones de respuesta
 
@@ -86,9 +86,9 @@ Pedido (`Pedido`):
 | `GET /productos` | Sin cuerpo; `limit`, `offset` opcionales | `200`, página de `Producto` | `422`, `503`, `500` |
 | `GET /productos/{id}` | UUID en ruta, sin cuerpo | `200`, `Producto` | `404`, `422`, `503`, `500` |
 | `PATCH /productos/{id}` | Uno o más de `nombre`, `descripcion`, `precio`, `activo` | `200`, `Producto` actualizado | `404`, `422`, `503`, `500` |
-| `DELETE /productos/{id}` | UUID en ruta, sin cuerpo | `204`, sin cuerpo | `404`, `422`, `503`, `500` |
+| `DELETE /productos/{id}` | UUID en ruta, sin cuerpo | `204`, sin cuerpo | `404`, `409`, `422`, `503`, `500` |
 
-Ejemplo de creación: `{"nombre":"Pan integral","precio":"5.50"}`. Ejemplo de actualización: `{"descripcion":null,"activo":false}`. La eliminación no comprueba pedidos existentes ni los elimina. Repetir un DELETE de un recurso ya eliminado devuelve `404`.
+Ejemplo de creación: `{"nombre":"Pan integral","precio":"5.50"}`. Ejemplo de actualización: `{"descripcion":null,"activo":false}`. Productos consulta a Pedidos (`GET /pedidos?producto_id=...&limit=1`) y, si existe algún pedido, responde `409` con código `product_has_orders` sin eliminar; si Pedidos no responde, devuelve `503` con código `pedidos_unavailable` y tampoco elimina. Repetir un DELETE de un recurso ya eliminado devuelve `404`.
 
 ## Endpoints de Pedidos
 

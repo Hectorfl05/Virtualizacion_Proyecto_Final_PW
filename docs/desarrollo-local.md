@@ -20,6 +20,7 @@ El proyecto soporta dos modos de ejecución local:
 | `DB_CONNECT_TIMEOUT_SECONDS` | Cada microservicio | Timeout para la conexión con PostgreSQL (por defecto `3`, rango 1–30 s). |
 | `LOG_LEVEL` | Cada microservicio | Nivel de bitácora (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`; por defecto `INFO`). |
 | `PRODUCTOS_BASE_URL` | Pedidos | URL del microservicio de Productos (`http://productos:8000` en Compose; `http://localhost:8001` en host). |
+| `PEDIDOS_BASE_URL` | Productos | URL de Pedidos, usada para impedir borrar productos con pedidos (`http://pedidos:8000` en Compose; `http://localhost:8002` en host). |
 | `PRODUCTOS_TIMEOUT_SECONDS` | Pedidos | Timeout HTTP para consultas a Productos (por defecto `5.0` s). |
 | `TEST_DATABASE_URL` | Pruebas de integración | URL síncrona exclusiva para `pytest -m integration`. No se carga desde `.env`. |
 
