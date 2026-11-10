@@ -26,9 +26,11 @@ K8S_DIR="$ROOT_DIR/deploy/k8s"
 
 PRODUCTOS_PORT="${PRODUCTOS_PORT:-8001}"
 PEDIDOS_PORT="${PEDIDOS_PORT:-8002}"
+FRONTEND_PORT="${FRONTEND_PORT:-8080}"
 POSTGRES_IMAGE="${POSTGRES_IMAGE:-postgres:16}"
 PRODUCTOS_IMAGE="${PRODUCTOS_IMAGE:-panaderia-productos:latest}"
 PEDIDOS_IMAGE="${PEDIDOS_IMAGE:-panaderia-pedidos:latest}"
+FRONTEND_IMAGE="${FRONTEND_IMAGE:-panaderia-frontend:latest}"
 
 echo "================================================================="
 echo "  Prueba de Despliegue y Endpoints en Kubernetes (Sin Terraform)"
@@ -92,6 +94,8 @@ if docker info > /dev/null 2>&1; then
     docker build -t "$PRODUCTOS_IMAGE" "$ROOT_DIR/services/productos"
     echo "     Construyendo imagen $PEDIDOS_IMAGE..."
     docker build -t "$PEDIDOS_IMAGE" "$ROOT_DIR/services/pedidos"
+    echo "     Construyendo imagen $FRONTEND_IMAGE..."
+    docker build -t "$FRONTEND_IMAGE" "$ROOT_DIR/services/frontend"
     echo "  -> Imágenes locales listas y registradas en el motor de contenedores."
 else
     echo "  -> AVISO: Docker daemon no responde en /var/run/docker.sock en esta terminal WSL."
@@ -100,6 +104,7 @@ else
     echo "     Alternativamente, puedes construirlas una sola vez en PowerShell / CMD:"
     echo "       docker build -t panaderia-productos:latest ./services/productos"
     echo "       docker build -t panaderia-pedidos:latest ./services/pedidos"
+    echo "       docker build -t panaderia-frontend:latest ./services/frontend"
 fi
 
 # 5. Jobs de Migración Alembic
@@ -120,19 +125,23 @@ kubectl wait --namespace "$NAMESPACE" \
     --timeout=90s
 echo "  -> Migraciones aplicadas con éxito en ambas bases lógicas."
 
-# 6. Microservicios Web
+# 6. Microservicios Web y Frontend
 echo ""
-echo "[Paso 6/7] Desplegando microservicios Productos y Pedidos..."
+echo "[Paso 6/7] Desplegando microservicios Productos, Pedidos y Frontend..."
 sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/productos:1.0.0|${PRODUCTOS_IMAGE}|g" \
     "$K8S_DIR/06-productos.yaml" | kubectl apply -f -
 
 sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/pedidos:1.0.0|${PEDIDOS_IMAGE}|g" \
     "$K8S_DIR/07-pedidos.yaml" | kubectl apply -f -
 
+sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/frontend:1.0.0|${FRONTEND_IMAGE}|g" \
+    "$K8S_DIR/08-frontend.yaml" | kubectl apply -f -
+
 echo "  -> Esperando disponibilidad de réplicas..."
 kubectl rollout status deployment/productos -n "$NAMESPACE" --timeout=90s
 kubectl rollout status deployment/pedidos -n "$NAMESPACE" --timeout=90s
-echo "  -> Todos los pods de Productos y Pedidos están operativos."
+kubectl rollout status deployment/frontend -n "$NAMESPACE" --timeout=90s
+echo "  -> Todos los pods de Productos, Pedidos y Frontend están operativos."
 
 # 7. Verificación de Endpoints y Pruebas E2E
 echo ""
@@ -140,17 +149,20 @@ echo "[Paso 7/7] Verificando endpoints y ejecutando pruebas E2E..."
 
 # Verificar si los servicios LoadBalancer ya están respondiendo directamente en localhost
 if curl -s "http://localhost:$PRODUCTOS_PORT/health/ready" > /dev/null 2>&1 && \
-   curl -s "http://localhost:$PEDIDOS_PORT/health/ready" > /dev/null 2>&1; then
-    echo "  -> Endpoints alcanzables directamente en localhost:$PRODUCTOS_PORT y localhost:$PEDIDOS_PORT (LoadBalancer nativo)."
+   curl -s "http://localhost:$PEDIDOS_PORT/health/ready" > /dev/null 2>&1 && \
+   curl -s "http://localhost:$FRONTEND_PORT/health" > /dev/null 2>&1; then
+    echo "  -> Endpoints alcanzables directamente en localhost (LoadBalancer nativo)."
 else
     echo "  -> Iniciando túnel port-forward auxiliar..."
     PID_PF_PROD=""
     PID_PF_PED=""
+    PID_PF_FRONT=""
     cleanup() {
         echo ""
         echo "Cerrando túneles port-forward..."
         [ -n "$PID_PF_PROD" ] && kill "$PID_PF_PROD" 2>/dev/null || true
         [ -n "$PID_PF_PED" ] && kill "$PID_PF_PED" 2>/dev/null || true
+        [ -n "$PID_PF_FRONT" ] && kill "$PID_PF_FRONT" 2>/dev/null || true
     }
     trap cleanup EXIT INT TERM
 
@@ -158,11 +170,14 @@ else
     PID_PF_PROD=$!
     kubectl port-forward svc/pedidos "$PEDIDOS_PORT:8000" -n "$NAMESPACE" > /dev/null 2>&1 &
     PID_PF_PED=$!
+    kubectl port-forward svc/frontend "$FRONTEND_PORT:8080" -n "$NAMESPACE" > /dev/null 2>&1 &
+    PID_PF_FRONT=$!
 
     echo -n "Esperando que los endpoints respondan... "
     count=0
     until curl -s "http://localhost:$PRODUCTOS_PORT/health/ready" > /dev/null 2>&1 && \
-          curl -s "http://localhost:$PEDIDOS_PORT/health/ready" > /dev/null 2>&1; do
+          curl -s "http://localhost:$PEDIDOS_PORT/health/ready" > /dev/null 2>&1 && \
+          curl -s "http://localhost:$FRONTEND_PORT/health" > /dev/null 2>&1; do
         count=$((count + 1))
         if [ "$count" -ge 30 ]; then
             echo " ERROR (Timeout al conectar con los endpoints)"
