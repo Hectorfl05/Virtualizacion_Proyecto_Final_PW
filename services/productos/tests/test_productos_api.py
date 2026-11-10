@@ -9,8 +9,11 @@ from sqlalchemy.exc import OperationalError
 
 from app.config import Settings
 from app.database import get_session
+from app.clients.pedidos import PedidosUnavailableError
 from app.main import create_app
 from app.models import Producto
+from app.routes import get_producto_service
+from app.service import ProductoService
 
 
 class InMemorySession:
@@ -54,7 +57,14 @@ def fake_db():
 
 
 @pytest.fixture
-def client(fake_db):
+def pedidos_client():
+    mock = MagicMock()
+    mock.has_pedidos.return_value = False
+    return mock
+
+
+@pytest.fixture
+def client(fake_db, pedidos_client):
     settings = Settings(
         _env_file=None,
         database_url="postgresql+psycopg://test:private@127.0.0.1:1/test",
@@ -62,6 +72,8 @@ def client(fake_db):
     )
     app = create_app(settings)
     app.dependency_overrides[get_session] = lambda: fake_db
+    test_service = ProductoService(pedidos_client=pedidos_client)
+    app.dependency_overrides[get_producto_service] = lambda: test_service
     with TestClient(app) as test_client:
         yield test_client
 
@@ -420,6 +432,69 @@ def test_delete_producto_lifecycle(client, fake_db):
     res_get = client.get(f"/productos/{uid}")
     assert res_get.status_code == 404
     assert res_get.json()["detail"][0]["code"] == "not_found"
+
+
+def _add_producto(fake_db, nombre="Pan de pipa"):
+    uid = uuid.uuid4()
+    fake_db.add(
+        Producto(
+            id=uid,
+            nombre=nombre,
+            descripcion=None,
+            precio=Decimal("5.00"),
+            activo=True,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+        )
+    )
+    return uid
+
+
+def test_delete_producto_with_orders_is_rejected(client, fake_db, pedidos_client):
+    uid = _add_producto(fake_db)
+    pedidos_client.has_pedidos.return_value = True
+
+    res = client.delete(f"/productos/{uid}")
+
+    assert res.status_code == 409
+    assert res.json()["detail"][0]["code"] == "product_has_orders"
+    pedidos_client.has_pedidos.assert_called_once_with(uid)
+    # El producto sigue existiendo.
+    assert client.get(f"/productos/{uid}").status_code == 200
+
+
+def test_delete_producto_succeeds_once_orders_are_gone(client, fake_db, pedidos_client):
+    uid = _add_producto(fake_db)
+    pedidos_client.has_pedidos.return_value = True
+    assert client.delete(f"/productos/{uid}").status_code == 409
+
+    pedidos_client.has_pedidos.return_value = False
+    assert client.delete(f"/productos/{uid}").status_code == 204
+    assert client.get(f"/productos/{uid}").status_code == 404
+
+
+def test_delete_producto_when_pedidos_down_does_not_delete(client, fake_db, pedidos_client):
+    uid = _add_producto(fake_db)
+    pedidos_client.has_pedidos.side_effect = PedidosUnavailableError("caído")
+
+    res = client.delete(f"/productos/{uid}")
+
+    assert res.status_code == 503
+    assert res.json()["detail"][0]["code"] == "pedidos_unavailable"
+    assert client.get(f"/productos/{uid}").status_code == 200
+
+
+def test_delete_unknown_producto_returns_404_without_asking_pedidos(client, pedidos_client):
+    res = client.delete(f"/productos/{uuid.uuid4()}")
+    assert res.status_code == 404
+    pedidos_client.has_pedidos.assert_not_called()
+
+
+def test_inactive_producto_with_orders_still_cannot_be_deleted(client, fake_db, pedidos_client):
+    uid = _add_producto(fake_db)
+    assert client.patch(f"/productos/{uid}", json={"activo": False}).status_code == 200
+    pedidos_client.has_pedidos.return_value = True
+    assert client.delete(f"/productos/{uid}").status_code == 409
 
 
 def test_database_error_handling(client):

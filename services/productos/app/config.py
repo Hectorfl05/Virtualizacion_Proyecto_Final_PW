@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     database_url: SecretStr
     db_connect_timeout_seconds: int = Field(default=3, ge=1, le=30)
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    pedidos_base_url: str = "http://pedidos:8000"
+    pedidos_timeout_seconds: float = Field(default=5, gt=0, le=60)
 
     @field_validator("database_url")
     @classmethod
