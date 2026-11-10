@@ -94,7 +94,7 @@ async function loadProductos() {
   tbody.innerHTML = "";
 
   try {
-    const res = await fetch(`${PRODUCTOS_URL}/productos?limit=100`);
+    const res = await fetch(`${PRODUCTOS_URL}/productos`);
     if (!res.ok) throw new Error(`Error ${res.status}: no se pudo obtener productos`);
 
     const data = await res.json();
@@ -224,13 +224,6 @@ document.getElementById("form-producto").addEventListener("submit", async (e) =>
   }
 });
 
-function detailMessage(errData, status) {
-  const d = errData && errData.detail;
-  if (typeof d === "string") return d;
-  if (Array.isArray(d) && d.length) return d.map(e => e.msg || e).join(", ");
-  return `Error ${status}`;
-}
-
 async function deleteProducto(id, nombre) {
   if (!confirm(`¿Eliminar el producto "${nombre}"?\n\nEsta acción es permanente.`)) return;
 
@@ -241,7 +234,7 @@ async function deleteProducto(id, nombre) {
 
     if (!res.ok && res.status !== 204) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(detailMessage(errData, res.status));
+      throw new Error(errData.detail || `Error ${res.status}`);
     }
 
     showToast("Producto eliminado", "success");
@@ -264,7 +257,7 @@ async function loadProductosForSelect() {
   const currentValue = select.value;
 
   try {
-    const res = await fetch(`${PRODUCTOS_URL}/productos?limit=100`);
+    const res = await fetch(`${PRODUCTOS_URL}/productos`);
     if (!res.ok) throw new Error("No se pudieron cargar productos");
 
     const data = await res.json();
@@ -302,7 +295,7 @@ async function loadPedidos() {
   tbody.innerHTML = "";
 
   try {
-    const res = await fetch(`${PEDIDOS_URL}/pedidos?limit=100`);
+    const res = await fetch(`${PEDIDOS_URL}/pedidos`);
     if (!res.ok) throw new Error(`Error ${res.status}: no se pudo obtener pedidos`);
 
     const data = await res.json();
@@ -477,7 +470,7 @@ async function deletePedido(id) {
 
     if (!res.ok && res.status !== 204) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(detailMessage(errData, res.status));
+      throw new Error(errData.detail || `Error ${res.status}`);
     }
 
     showToast("Pedido eliminado", "success");

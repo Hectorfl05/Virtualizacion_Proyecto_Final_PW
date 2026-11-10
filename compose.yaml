@@ -55,8 +55,6 @@ services:
       - "127.0.0.1:8001:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://productos_app:${PRODUCTOS_DB_PASSWORD:?Definir PRODUCTOS_DB_PASSWORD en .env}@postgres:5432/productos_db
-      PEDIDOS_BASE_URL: http://pedidos:8000
-      PEDIDOS_TIMEOUT_SECONDS: 5.0
       DB_CONNECT_TIMEOUT_SECONDS: 3
       LOG_LEVEL: INFO
     depends_on:

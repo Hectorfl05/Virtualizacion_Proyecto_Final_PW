@@ -131,18 +131,6 @@ def test_full_e2e_lifecycle():
                 error_body = res_inactivo.json()
                 assert error_body["detail"][0]["code"] == "product_inactive"
 
-                # 8b. El filtro por producto_id encuentra el pedido
-                res_filter = client.get(f"{PEDIDOS_URL}/pedidos?producto_id={producto_id}")
-                assert res_filter.status_code == 200
-                assert res_filter.json()["total"] == 1
-                assert res_filter.json()["items"][0]["id"] == pedido_id
-
-                # 8c. No se puede eliminar un producto con pedidos (409) y sigue existiendo
-                res_blocked = client.delete(f"{PRODUCTOS_URL}/productos/{producto_id}")
-                assert res_blocked.status_code == 409
-                assert res_blocked.json()["detail"][0]["code"] == "product_has_orders"
-                assert client.get(f"{PRODUCTOS_URL}/productos/{producto_id}").status_code == 200
-
             finally:
                 # 9. Eliminación física de Pedido
                 res_del_ped = client.delete(f"{PEDIDOS_URL}/pedidos/{pedido_id}")

@@ -112,8 +112,8 @@ echo ""
 echo "[Paso 5/7] Ejecutando Jobs de Migración de Base de Datos..."
 kubectl delete job productos-migration-job pedidos-migration-job -n "$NAMESPACE" --ignore-not-found=true > /dev/null 2>&1 || true
 
-sed -e "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/productos:[^ ]*|${PRODUCTOS_IMAGE}|g" \
-    -e "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/pedidos:[^ ]*|${PEDIDOS_IMAGE}|g" \
+sed -e "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/productos:1.0.0|${PRODUCTOS_IMAGE}|g" \
+    -e "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/pedidos:1.0.0|${PEDIDOS_IMAGE}|g" \
     "$K8S_DIR/05-migration-jobs.yaml" | kubectl apply -f -
 
 echo "  -> Esperando completitud de migraciones..."
@@ -128,13 +128,13 @@ echo "  -> Migraciones aplicadas con éxito en ambas bases lógicas."
 # 6. Microservicios Web y Frontend
 echo ""
 echo "[Paso 6/7] Desplegando microservicios Productos, Pedidos y Frontend..."
-sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/productos:[^ ]*|${PRODUCTOS_IMAGE}|g" \
+sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/productos:1.0.0|${PRODUCTOS_IMAGE}|g" \
     "$K8S_DIR/06-productos.yaml" | kubectl apply -f -
 
-sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/pedidos:[^ ]*|${PEDIDOS_IMAGE}|g" \
+sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/pedidos:1.0.0|${PEDIDOS_IMAGE}|g" \
     "$K8S_DIR/07-pedidos.yaml" | kubectl apply -f -
 
-sed "s|us-central1-docker.pkg.dev/[^/]*/panaderia-repo/frontend:[^ ]*|${FRONTEND_IMAGE}|g" \
+sed "s|us-central1-docker.pkg.dev/proyecto-gcp/panaderia-repo/frontend:1.0.0|${FRONTEND_IMAGE}|g" \
     "$K8S_DIR/08-frontend.yaml" | kubectl apply -f -
 
 echo "  -> Esperando disponibilidad de réplicas..."

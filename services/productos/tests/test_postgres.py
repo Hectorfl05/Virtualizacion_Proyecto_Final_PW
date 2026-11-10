@@ -5,7 +5,6 @@ import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,8 +13,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import Settings
 from app.main import create_app
-from app.routes import get_producto_service
-from app.service import ProductoService
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -67,13 +64,7 @@ def test_postgres_productos_crud_lifecycle():
     if not url:
         pytest.skip("Definir TEST_DATABASE_URL para verificar PostgreSQL real")
     settings = Settings(_env_file=None, database_url=url)
-    app = create_app(settings)
-    # Pedidos tiene su propia base: aquí se simula que el producto no tiene pedidos.
-    no_orders = MagicMock()
-    no_orders.has_pedidos.return_value = False
-    stub_service = ProductoService(pedidos_client=no_orders)
-    app.dependency_overrides[get_producto_service] = lambda: stub_service
-    with TestClient(app) as client:
+    with TestClient(create_app(settings)) as client:
         # 1. Crear producto con datos completos y verificar respuesta HTTP 201
         create_res = client.post(
             "/productos",

@@ -143,25 +143,25 @@ kubectl create secret generic panaderia-secrets \
 ```
 
 ### Paso 2: Publicar Imágenes en Artifact Registry
-Los manifiestos esperan las imágenes en Artifact Registry con etiquetas inmutables (`1.1.0`). Si el ID de tu proyecto no es `virtualizacion-proyecto-pr`, reemplázalo en los `image:` de `deploy/k8s/04` a `08`:
+Los manifiestos esperan que las imágenes residan en Artifact Registry con etiquetas inmutables:
 
 ```bash
 # Autenticar Docker con GCP
 gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Construir y etiquetar
-docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.1.0 ./services/productos
-docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.1.0 ./services/pedidos
-docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.1.0 ./services/frontend
+docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.0.0 ./services/productos
+docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.0.0 ./services/pedidos
+docker build -t us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.0.0 ./services/frontend
 
 # Copiar imagen de postgres oficial a Artifact Registry
 docker pull postgres:16
 docker tag postgres:16 us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/postgres:16
 
 # Publicar
-docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.1.0
-docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.1.0
-docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.1.0
+docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.0.0
+docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/pedidos:1.0.0
+docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/frontend:1.0.0
 docker push us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/postgres:16
 ```
 
@@ -222,7 +222,7 @@ Demostrar la actualización progresiva de versión sin caída del servicio:
 
 ```bash
 # Actualizar la imagen a una nueva versión
-kubectl set image deployment/productos productos=us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.1.1 -n panaderia-grupo-4
+kubectl set image deployment/productos productos=us-central1-docker.pkg.dev/PROYECTO_GCP/panaderia-repo/productos:1.0.1 -n panaderia-grupo-4
 
 # Observar el despliegue progresivo (maxSurge=1, maxUnavailable=0)
 kubectl rollout status deployment/productos -n panaderia-grupo-4

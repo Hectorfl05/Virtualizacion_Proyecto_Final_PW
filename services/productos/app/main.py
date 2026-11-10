@@ -14,8 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import Settings, get_settings
 from app.database import build_engine
 from app.routes import router as productos_router
-from app.clients.pedidos import PedidosClient, PedidosUnavailableError
-from app.service import ProductHasOrdersError, ProductNotFoundError, ProductoService
+from app.service import ProductNotFoundError
 
 logger = logging.getLogger("panaderia.productos")
 
@@ -49,9 +48,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = build_engine(config)
         app.state.engine = engine
         app.state.session_factory = sessionmaker(bind=engine, expire_on_commit=False)
-        app.state.producto_service = ProductoService(
-            pedidos_client=PedidosClient(config.pedidos_base_url, config.pedidos_timeout_seconds)
-        )
         logger.info("Servicio productos iniciado")
         try:
             yield
@@ -119,38 +115,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         "loc": ["path", "id"],
                         "code": "not_found",
                         "msg": "Producto no encontrado.",
-                    }
-                ]
-            },
-        )
-
-    @app.exception_handler(ProductHasOrdersError)
-    async def product_has_orders_handler(request: Request, exc: ProductHasOrdersError):
-        return JSONResponse(
-            status_code=409,
-            content={
-                "detail": [
-                    {
-                        "loc": ["path", "id"],
-                        "code": "product_has_orders",
-                        "msg": "El producto tiene pedidos asociados y no puede eliminarse. "
-                        "Desactívelo o elimine primero sus pedidos.",
-                    }
-                ]
-            },
-        )
-
-    @app.exception_handler(PedidosUnavailableError)
-    async def pedidos_unavailable_handler(request: Request, exc: PedidosUnavailableError):
-        logger.warning("Fallo operativo al consultar servicio de pedidos: %s", str(exc))
-        return JSONResponse(
-            status_code=503,
-            content={
-                "detail": [
-                    {
-                        "loc": ["server"],
-                        "code": "pedidos_unavailable",
-                        "msg": "El servicio de pedidos no está disponible temporalmente.",
                     }
                 ]
             },
