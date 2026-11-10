@@ -47,8 +47,14 @@ class PedidoService:
             raise PedidoNotFoundError(pedido_id)
         return pedido
 
-    def list_pedidos(self, session: Session, limit: int, offset: int) -> tuple[list[Pedido], int]:
-        return self.repository.list_paginated(session, limit, offset)
+    def list_pedidos(
+        self,
+        session: Session,
+        limit: int,
+        offset: int,
+        producto_id: uuid.UUID | None = None,
+    ) -> tuple[list[Pedido], int]:
+        return self.repository.list_paginated(session, limit, offset, producto_id)
 
     def update_pedido(self, session: Session, pedido_id: uuid.UUID, data: PedidoUpdate) -> Pedido:
         pedido = self.get_pedido(session, pedido_id)

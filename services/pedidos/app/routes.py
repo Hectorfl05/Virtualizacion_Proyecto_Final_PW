@@ -50,15 +50,16 @@ def create_pedido(
     "",
     response_model=PedidoListResponse,
     status_code=status.HTTP_200_OK,
-    summary="Listar pedidos paginados",
+    summary="Listar pedidos paginados (filtro opcional por producto_id)",
 )
 def list_pedidos(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    producto_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_session),
     service: PedidoService = Depends(get_pedido_service),
 ) -> PedidoListResponse:
-    items, total = service.list_pedidos(db, limit, offset)
+    items, total = service.list_pedidos(db, limit, offset, producto_id)
     return PedidoListResponse(
         items=[PedidoResponse.model_validate(p) for p in items],
         total=total,

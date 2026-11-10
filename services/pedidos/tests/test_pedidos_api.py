@@ -89,6 +89,47 @@ def client(fake_db, mock_productos_client):
         yield test_client
 
 
+def test_list_pedidos_accepts_producto_id_filter(client):
+    res = client.get(f"/pedidos?producto_id={uuid.uuid4()}&limit=1")
+    assert res.status_code == 200
+    assert res.json()["limit"] == 1
+
+
+def test_list_pedidos_rejects_invalid_producto_id(client):
+    res = client.get("/pedidos?producto_id=no-es-uuid")
+    assert res.status_code == 422
+
+
+def test_repository_filters_count_and_items_by_producto_id():
+    from sqlalchemy.dialects import postgresql
+
+    from app.repository import PedidoRepository
+
+    captured = []
+
+    class CapturingSession:
+        def scalar(self, stmt):
+            captured.append(stmt)
+            return 0
+
+        def scalars(self, stmt):
+            captured.append(stmt)
+            return MagicMock(all=lambda: [])
+
+    pid = uuid.uuid4()
+    PedidoRepository().list_paginated(CapturingSession(), 1, 0, pid)
+    assert len(captured) == 2
+    for stmt in captured:
+        compiled = stmt.compile(dialect=postgresql.dialect())
+        assert "pedidos.producto_id = %(producto_id_1)s" in str(compiled)
+        assert compiled.params["producto_id_1"] == pid
+
+    captured.clear()
+    PedidoRepository().list_paginated(CapturingSession(), 1, 0)
+    for stmt in captured:
+        assert "WHERE" not in str(stmt.compile(dialect=postgresql.dialect()))
+
+
 def test_create_pedido_success(client, mock_productos_client):
     prod_id = uuid.uuid4()
     mock_productos_client.get_producto.return_value = RemoteProducto(
