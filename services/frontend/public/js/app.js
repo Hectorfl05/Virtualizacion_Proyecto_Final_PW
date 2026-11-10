@@ -94,7 +94,7 @@ async function loadProductos() {
   tbody.innerHTML = "";
 
   try {
-    const res = await fetch(`${PRODUCTOS_URL}/productos`);
+    const res = await fetch(`${PRODUCTOS_URL}/productos?limit=100`);
     if (!res.ok) throw new Error(`Error ${res.status}: no se pudo obtener productos`);
 
     const data = await res.json();
@@ -264,7 +264,7 @@ async function loadProductosForSelect() {
   const currentValue = select.value;
 
   try {
-    const res = await fetch(`${PRODUCTOS_URL}/productos`);
+    const res = await fetch(`${PRODUCTOS_URL}/productos?limit=100`);
     if (!res.ok) throw new Error("No se pudieron cargar productos");
 
     const data = await res.json();
@@ -302,7 +302,7 @@ async function loadPedidos() {
   tbody.innerHTML = "";
 
   try {
-    const res = await fetch(`${PEDIDOS_URL}/pedidos`);
+    const res = await fetch(`${PEDIDOS_URL}/pedidos?limit=100`);
     if (!res.ok) throw new Error(`Error ${res.status}: no se pudo obtener pedidos`);
 
     const data = await res.json();
